@@ -59,16 +59,14 @@ namespace CSACore.Profiling {
 
         // RESULTS ================================================================================
         //--------------------------------------------------------------------------------
-        public string ResultsString {
-            get {
-                StringBuilder builder = new StringBuilder();
-                BuildResultsString(builder);
-                return builder.ToString();
-            }
+        public string ResultsString(bool individualDurations = false) {
+            StringBuilder builder = new StringBuilder();
+            BuildResultsString(builder, individualDurations);
+            return builder.ToString();
         }
 
         //--------------------------------------------------------------------------------
-        private void BuildResultsString(StringBuilder builder, string parentsName = "", int depth = 0, List<bool> atEndList = null) {
+        private void BuildResultsString(StringBuilder builder, bool individualDurations = false, string parentsName = "", int depth = 0, List<bool> atEndList = null) {
             // At end list
             if (atEndList == null)
                 atEndList = new List<bool>();
@@ -79,7 +77,7 @@ namespace CSACore.Profiling {
 
             // Header
             if (depth == 0) {
-                builder.AppendLine(new string('-', resultsNameWidth + 1 + 9 + 1 + 13 + 1 + 13));
+                builder.AppendLine(new string('-', resultsNameWidth + 1 + 9 + 1 + 13 + 1 + 13 + (individualDurations ? 14 * MaximumDurationCount : 0)));
                 builder.Append(new string(' ', resultsNameWidth));
                 builder.Append(" ");
                 builder.Append(" Quantity");
@@ -87,6 +85,14 @@ namespace CSACore.Profiling {
                 builder.Append("      Average");
                 builder.Append(" ");
                 builder.Append("        Total");
+
+                if (individualDurations) {
+                    for (int i = 0; i < MaximumDurationCount; ++i) {
+                        builder.Append(" ");
+                        builder.Append($"{i + 1,13}");
+                    }
+                }
+                
                 builder.AppendLine();
             }
 
@@ -117,15 +123,25 @@ namespace CSACore.Profiling {
                 builder.Append($"{entries[i].AverageDuration, 13:F4}");
                 builder.Append(" ");
                 builder.Append($"{entries[i].TotalDuration, 13:F4}");
+
+                // Individual durations
+                if (individualDurations && entries[i].Durations.Count > 0) {
+                    foreach (decimal d in entries[i].Durations) {
+                        builder.Append(" ");
+                        builder.Append($"{d, 13:F4}");
+                    }
+                }
+
+                // End line
                 builder.AppendLine();
 
                 // Next depth
-                BuildResultsString(builder, entries[i].Name, depth + 1, atEndList);
+                BuildResultsString(builder, individualDurations, entries[i].Name, depth + 1, atEndList);
             }
             
             // Line
             if (depth == 0)
-                builder.AppendLine(new string('-', resultsNameWidth + 1 + 9 + 1 + 13 + 1 + 13));
+                builder.AppendLine(new string('-', resultsNameWidth + 1 + 9 + 1 + 13 + 1 + 13 + (individualDurations ? 14 * MaximumDurationCount : 0)));
 
             // At end list
             atEndList.RemoveAt(atEndList.Count - 1);
@@ -144,6 +160,19 @@ namespace CSACore.Profiling {
                 }
 
                 return depth * 3 + longestNameLength;
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+        private int MaximumDurationCount {
+            get {
+                int maximumDurationCount = 0;
+                foreach (ProfilerEntry e in mEntries.Values) {
+                    if (e.Durations.Count > maximumDurationCount)
+                        maximumDurationCount = e.Durations.Count;
+                }
+
+                return maximumDurationCount;
             }
         }
     }

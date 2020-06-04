@@ -31,6 +31,32 @@ namespace CSACore.Utility {
             return builder.ToString();
         }
 
+
+        // FORMATTING ================================================================================
+        //--------------------------------------------------------------------------------
+        public static string[] WordWrap(string text, int width) {
+            // Variables
+            List<string> lines = new List<string>();
+            char[] whitespace = new[] { ' ', '\r', '\n', '\t' };
+            char[] delimiters = new[] { ' ', ',', '.', '?', '!', ':', ';', '-', '\n', '\r', '\t' };
+            int index;
+            int lastWrapIndex = 0;
+
+            // Wrap
+            do {
+                if (lastWrapIndex + width > text.Length)
+                    index = text.Length;
+                else
+                    index = text.LastIndexOfAny(delimiters, Math.Min(text.Length - 1, lastWrapIndex + width)) + 1;
+                lines.Add(text.Substring(lastWrapIndex, index - lastWrapIndex).Trim(whitespace));
+                lastWrapIndex = index;
+            }
+            while (index < text.Length);
+
+            // Return
+            return lines.ToArray();
+        }
+
         
         // DISTANCE ================================================================================
         //--------------------------------------------------------------------------------

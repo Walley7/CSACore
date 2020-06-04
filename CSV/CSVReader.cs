@@ -30,23 +30,23 @@ namespace CSACore.CSV {
 
         //================================================================================
         //--------------------------------------------------------------------------------
-        private CSVReader(StreamReader streamReader) {
-            Open(streamReader);
+        private CSVReader(StreamReader streamReader, char delimiter = ',') {
+            Open(streamReader, delimiter);
         }
 
         //--------------------------------------------------------------------------------
-        public CSVReader(string path) {
-            Open(path);
+        public CSVReader(string path, char delimiter = ',') {
+            Open(path, delimiter);
         }
 
         //--------------------------------------------------------------------------------
-        public CSVReader(string path, string copyPath) {
-            OpenIncrementalCopy(path, copyPath);
+        public CSVReader(string path, string copyPath, char delimiter = ',') {
+            OpenIncrementalCopy(path, copyPath, delimiter);
         }
         
         //--------------------------------------------------------------------------------
-        public CSVReader(Stream stream) {
-            Open(stream);
+        public CSVReader(Stream stream, char delimiter = ',') {
+            Open(stream, delimiter);
         }
 
         //--------------------------------------------------------------------------------
@@ -59,8 +59,8 @@ namespace CSACore.CSV {
         //--------------------------------------------------------------------------------
         // We open the reader twice due to CsvReader.Count() reading to the end of the
         // file, without a convenient way to reset this.
-        private void CountRows(StreamReader streamReader, bool dispose = true) {
-            mReader = new CsvReader(streamReader, true);
+        private void CountRows(StreamReader streamReader, char delimiter = ',', bool dispose = true) {
+            mReader = new CsvReader(streamReader, true, delimiter);
             mRowCount = mReader.Count();
             if (dispose)
                 mReader.Dispose(); // This closes the underlying stream, which we don't always want
@@ -68,41 +68,41 @@ namespace CSACore.CSV {
         }
 
         //--------------------------------------------------------------------------------
-        private void Open(StreamReader streamReader) {
+        private void Open(StreamReader streamReader, char delimiter = ',') {
             // CSV
-            mReader = new CsvReader(streamReader, true);
+            mReader = new CsvReader(streamReader, true, delimiter);
 
             // Headers
             BuildHeaderIndices();
         }
 
         //--------------------------------------------------------------------------------
-        public void Open(string path, bool close = true) {
+        public void Open(string path, char delimiter = ',', bool close = true) {
             // Close
             if (close)
                 Close();
 
             // Open
-            CountRows(File.OpenText(path), false);
-            Open(File.OpenText(path));
+            CountRows(File.OpenText(path), delimiter, false);
+            Open(File.OpenText(path), delimiter);
         }
 
         //--------------------------------------------------------------------------------
-        public void Open(Stream stream) {
+        public void Open(Stream stream, char delimiter = ',') {
             // Close
             Close();
 
             // Open
-            CountRows(new StreamReader(stream), false);
+            CountRows(new StreamReader(stream), delimiter, false);
             stream.Seek(0, System.IO.SeekOrigin.Begin);
-            Open(new StreamReader(stream));
+            Open(new StreamReader(stream), delimiter);
         }
 
         //--------------------------------------------------------------------------------
-        public void OpenIncrementalCopy(string path, string copyPath) {
+        public void OpenIncrementalCopy(string path, string copyPath, char delimiter = ',') {
             // Copy / open
             mCopyPath = Path.GetFullPath(UFile.IncrementalCopy(path, copyPath));
-            Open(mCopyPath, false);
+            Open(mCopyPath, delimiter, false);
         }
 
         //--------------------------------------------------------------------------------
@@ -170,6 +170,9 @@ namespace CSACore.CSV {
             IEnumerable<string> indices = from h in mHeaderIndices where h.Value.index == index select h.Value.casedHeading;
             return (indices.Count() > 0 ? indices.First() : null);
         }
+
+        //--------------------------------------------------------------------------------
+        public int HeaderCount { get => mHeaderIndices.Count(); }
 
         //--------------------------------------------------------------------------------
         public string FindMissingColumn(params string[] columns) {

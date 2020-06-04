@@ -1,6 +1,7 @@
 # Ignore temporary files
 **/.vs/*
 **/obj/*
+**/bin/*
 
 # Ignore NuGet Packages
 *.nupkg

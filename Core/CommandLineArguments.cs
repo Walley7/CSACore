@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CSACore.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,112 +11,88 @@ namespace CSACore.Core {
 
     public class CommandLineArguments {
         //================================================================================
-        //--------------------------------------------------------------------------------
-        public const string                     DEFAULT_KEY_LEADING_PATTERN = "-";
- 
-        protected Dictionary<string, string>    _parsedArguments = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        protected readonly string               _keyLeadingPattern;
+        public const string                         KEY_PREFIX = "-";
+        public const int                            USAGE_DESCRIPTION_OFFSET = 26;
+        public const int                            USAGE_WIDTH = 119;
+
+
+        //================================================================================
+        private Dictionary<string, List<string>>    mArguments = new Dictionary<string, List<string>>();
 
 
         //================================================================================
         //--------------------------------------------------------------------------------
-        public CommandLineArguments(string[] args, string keyLeadingPattern) {
-            _keyLeadingPattern = !string.IsNullOrEmpty(keyLeadingPattern) ? keyLeadingPattern : DEFAULT_KEY_LEADING_PATTERN;
+        public CommandLineArguments(string[] args) {
             if (args != null && args.Length > 0)
                 Parse(args);
         }
-
-        //--------------------------------------------------------------------------------
-        public CommandLineArguments(string[] args) : this(args, null) { }
 
 
         // PARSING ================================================================================
         //--------------------------------------------------------------------------------
         protected virtual void Parse(string[] args) {
-            for (int i = 0; i < args.Length; i ++) {
-                if(args[i] == null) continue;
- 
-                string key = null;
-                string val = null;
- 
-                if(IsKey(args[i])) {
-                    key = args[i];
- 
-                    if(i + 1 < args.Length && !IsKey(args[i + 1])) {
-                        val = args[i + 1];
-                        i ++;
-                    }
+            // Variables
+            string key = "";
+
+            // Parse
+            foreach (string a in args) {
+                // Checks
+                if (a == null)
+                    continue;
+
+                // Argument
+                if (a.StartsWith(KEY_PREFIX)) {
+                    key = a.ToLower();
+                    if (!mArguments.ContainsKey(key))
+                        mArguments.Add(key, new List<string>());
                 }
                 else
-                    val = args[i];
- 
-                // adjustment
-                if (key == null) {
-                    key = val;
-                    val = null;
-                }
-                _parsedArguments[key] = val;
+                    mArguments[key].Add(a);
             }
         }
-
-
-        // KEYS ================================================================================
-        //--------------------------------------------------------------------------------
-        protected virtual bool ContainsKey(string key, out string adjustedKey) {
-            adjustedKey = key;
- 
-            if (_parsedArguments.ContainsKey(key))
-                return true;
- 
-            if (IsKey(key))  {
-                string peeledKey = GetPeeledKey(key);
-                if(_parsedArguments.ContainsKey(peeledKey)) {
-                    adjustedKey = peeledKey;
-                    return true;
-                }
-                return false;
-            }
- 
-            string decoratedKey = GetDecoratedKey(key);
-            if(_parsedArguments.ContainsKey(decoratedKey)) {
-                adjustedKey = decoratedKey;
-                return true;
-            }
-            return false;
-        }
-        
-        //--------------------------------------------------------------------------------
-        public bool Contains(string key) {
-            string adjustedKey;
-            return ContainsKey(key, out adjustedKey);
-        }
- 
-        //--------------------------------------------------------------------------------
-        public virtual string GetPeeledKey(string key) { return IsKey(key) ? key.Substring(_keyLeadingPattern.Length) : key; }
-        public virtual string GetDecoratedKey(string key) { return !IsKey(key) ? (_keyLeadingPattern + key) : key; }
-        public virtual bool IsKey(string str) { return str.StartsWith(_keyLeadingPattern); }
 
 
         // ARGUMENTS ================================================================================
         //--------------------------------------------------------------------------------
-        protected virtual string GetValue(string key) {
-            string adjustedKey;
-            if(ContainsKey(key, out adjustedKey))
-                return _parsedArguments[adjustedKey];
-            return null;
-        }
+        public string[] Arguments(string key) { return (mArguments.ContainsKey(key.ToLower()) ? mArguments[key.ToLower()].ToArray() : null); }
+        public string[] this[string key] { get { return Arguments(key); } }
+        public bool HasKey(string key) { return Arguments(key) != null; }
 
+
+        // HELP ================================================================================
         //--------------------------------------------------------------------------------
-        public string this[string key] {
-            get { return GetValue(key); }
-            set {
-                if (key != null)
-                    _parsedArguments[key] = value;
+        public string UsageString(string usage, params string[][] arguments) {
+            // Usage
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} {usage}");
+
+            // Arguments
+            foreach (string[] a in arguments) {
+                if (a.Length >= 2) {
+                    // Argument
+                    builder.Append("  ");
+                    builder.Append(a[0]);
+                    if (a[0].Length < USAGE_DESCRIPTION_OFFSET)
+                        builder.Append(' ', USAGE_DESCRIPTION_OFFSET - a[0].Length - 2);
+                    else {
+                        builder.AppendLine();
+                        builder.Append(' ', USAGE_DESCRIPTION_OFFSET);
+                    }
+
+                    // Description
+                    string[] lines = UString.WordWrap(a[1], USAGE_WIDTH - USAGE_DESCRIPTION_OFFSET);
+                    if (lines.Length > 0)
+                        builder.AppendLine(lines[0]);
+                    for (int i = 1; i < lines.Length; ++i) {
+                        builder.Append(' ', USAGE_DESCRIPTION_OFFSET);
+                        builder.AppendLine(lines[i]);
+                    }
+                }
             }
-        }
 
-        //--------------------------------------------------------------------------------
-        public string KeyLeadingPattern { get { return _keyLeadingPattern; } }
+            // String
+            return builder.ToString();
+        }
     }
 
 }
