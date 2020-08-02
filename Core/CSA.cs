@@ -75,6 +75,54 @@ namespace CSACore.Core {
             return settingValue;
         }
 
+        //--------------------------------------------------------------------------------
+        public static string[] ArraySetting(string settingName, bool exceptionOnNull = true) {
+            // Setting
+            JToken token = sConfigurationJson.SelectToken(settingName);
+            if (exceptionOnNull && (token == null))
+                throw new InvalidDataException("Missing setting - '" + settingName + "'");
+
+            // Non-array
+            if (!(token is JArray))
+                return new[] { (string)token };
+
+            // Array
+            JArray settingArray = (JArray)token;
+            string[] array = new string[settingArray.Count];
+            for (int i = 0; i < settingArray.Count; ++i) {
+                array[i] = (string)settingArray[i];
+            }
+            return array;
+        }
+
+        //--------------------------------------------------------------------------------
+        public static string[][] Array2DSetting(string settingName, bool exceptionOnNull = true) {
+            // Setting
+            JToken token = sConfigurationJson.SelectToken(settingName);
+            if (exceptionOnNull && (token == null))
+                throw new InvalidDataException("Missing setting - '" + settingName + "'");
+
+            // Non-array
+            if (!(token is JArray))
+                return new[] { new[] { (string)token } };
+
+            // Array
+            JArray settingArray = (JArray)token;
+            string[][] array = new string[settingArray.Count][];
+            for (int i = 0; i < settingArray.Count; ++i) {
+                if (!(settingArray[i] is JArray))
+                    array[i] = new[] { (string)settingArray[i] };
+                else {
+                    JArray settingSubArray = (JArray)settingArray[i];
+                    array[i] = new string[settingSubArray.Count];
+                    for (int j = 0; j < settingSubArray.Count; ++j) {
+                        array[i][j] = (string)settingSubArray[j];
+                    }
+                }
+            }
+            return array;
+        }
+
 
         // LOGGING ================================================================================
         //--------------------------------------------------------------------------------

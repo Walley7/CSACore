@@ -26,6 +26,8 @@ namespace CSACore.Logging {
         //================================================================================
         private StreamWriter                    mStreamWriter = null;
 
+        private bool                            mLogToConsole = true;
+
         private string                          mIndent = "";
 
         private DateTime                        mLogStartTime = DateTime.Now;
@@ -71,7 +73,8 @@ namespace CSACore.Logging {
         public void Log(string text) {
             if (!IsOpen)
                 throw new InvalidOperationException("The log is not open.");
-            Console.WriteLine(text);
+            if (LogToConsole)
+                Console.WriteLine(text);
             mStreamWriter.WriteLine(text);
         }
 
@@ -105,7 +108,10 @@ namespace CSACore.Logging {
         //--------------------------------------------------------------------------------
         public void LogError(string text) { Log(Category.ERROR, text); }
         public void LogWarning(string text) { Log(Category.WARNING, text); }
-
+        
+        //--------------------------------------------------------------------------------
+        public bool LogToConsole { set => mLogToConsole = value; get => mLogToConsole; }
+        
 
         // CATEGORIES ================================================================================
         //--------------------------------------------------------------------------------
