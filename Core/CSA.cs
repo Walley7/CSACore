@@ -47,7 +47,10 @@ namespace CSACore.Core {
         public static void Initialise() { Initialise(null, null); }
 
         //--------------------------------------------------------------------------------
-        public static void Shutdown() { }
+        public static void Shutdown(bool logEnd = true) {
+            // Log
+            CloseLog();
+        }
 
 
         // COMMAND LINE ARGUMENTS ================================================================================
