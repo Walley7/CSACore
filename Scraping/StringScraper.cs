@@ -92,6 +92,14 @@ namespace CSACore.Scraping {
         public bool ReadPastCheck(string pattern, bool readIfNotFound = false) { return ReadPast(pattern, readIfNotFound) != ""; }
 
         //--------------------------------------------------------------------------------
+        public string ReadPastAndPast(string pattern1, string pattern2, bool readIfNotFound = false) {
+            if (ReadPastCheck(pattern1, readIfNotFound))
+                return ReadPast(pattern2, readIfNotFound);
+            else
+                return "";
+        }
+
+        //--------------------------------------------------------------------------------
         public string ReadPastAndTo(string pastPattern, string toPattern, bool readIfNotFound = false) {
             if (ReadPastCheck(pastPattern, readIfNotFound))
                 return ReadTo(toPattern, readIfNotFound);
