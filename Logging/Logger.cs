@@ -101,7 +101,7 @@ namespace CSACore.Logging {
         //--------------------------------------------------------------------------------
         public void LogEnd() {
             LogBreak();
-            Log(Category.END, $"Done (duration: {(DateTime.Now - mLogStartTime).ToString("hh\\:mm\\:ss")})");
+            Log(Category.END, $"Done (duration: {(DateTime.Now - mLogStartTime).ToString("dd\\:hh\\:mm\\:ss")})");
             LogBlankLine();
         }
 

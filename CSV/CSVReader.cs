@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CSACore.CSV {
 
-    public class CSVReader {
+    public class CSVReader : IDisposable {
         //================================================================================
         private CsvReader                           mReader = null;
         private string                              mCopyPath = null;
