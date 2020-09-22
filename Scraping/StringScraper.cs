@@ -108,6 +108,28 @@ namespace CSACore.Scraping {
         }
         
         //--------------------------------------------------------------------------------
+        public string ReadPastAndShortestPastOrTo(string pastPattern1, string pastPattern2, string toPattern, bool readIfNotFound = false) {
+            // Checks
+            if (!ReadPastCheck(pastPattern1, readIfNotFound))
+                return "";
+
+            // Index
+            int index = mIndex;
+
+            // Find shortest
+            string past = ReadPast(pastPattern2, true);
+            mIndex = index;
+            string to = ReadTo(toPattern, true);
+            mIndex = index;
+
+            // Read
+            if (past.Length < to.Length)
+                return ReadPast(pastPattern2, readIfNotFound);
+            else
+                return ReadTo(toPattern, readIfNotFound);
+        }
+        
+        //--------------------------------------------------------------------------------
         public string ReadPastAndToOrTo(string pastPattern, string toPattern1, string toPattern2, bool readIfNotFound = false) {
             if (ReadPastCheck(pastPattern, readIfNotFound)) {
                 string result = ReadTo(toPattern1, readIfNotFound);
