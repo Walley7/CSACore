@@ -133,6 +133,10 @@ namespace CSACore.Core {
             // Close
             CloseLog();
 
+            // Directories
+            if (!string.IsNullOrWhiteSpace(Path.GetDirectoryName(logPath)))
+                Directory.CreateDirectory(Path.GetDirectoryName(logPath));
+
             // Timestamp
             if (addTimestamp)
                 logPath = logPath.Insert(Math.Max(logPath.LastIndexOf('.'), 0), "-" + UDateTime.Datestamp());
